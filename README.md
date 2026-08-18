@@ -10,3 +10,6 @@ My cybersecurity learning journey — notes, scripts, and CTF writeups as I work
 
 Long-term interest: cybersecurity broadly, starting with penetration testing 
 fundamentals and planning to explore security engineering / cloud security later.
+
+## Certifications 
+***TryHackMe - Pre Security Path** - [View Certificate](https://tryhackme-certificates.s3-eu-west-1.amazonaws.com/THM-JIVPAPNBUB.pdf)
