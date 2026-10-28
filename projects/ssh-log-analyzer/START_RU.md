@@ -8,7 +8,7 @@
 Если репозиторий ещё не скачан, выполни в терминале Ubuntu:
 
 ```bash
-git clone --branch feature/ssh-log-analyzer https://github.com/Nodir404/Cyber-Learning.git
+git clone https://github.com/Nodir404/Cyber-Learning.git
 cd Cyber-Learning
 code .
 ```
@@ -16,11 +16,10 @@ code .
 Если он уже скачан, открой его папку в VS Code, открой встроенный терминал и выполни:
 
 ```bash
-git fetch origin
-git switch --track origin/feature/ssh-log-analyzer
+git switch main
+git pull --ff-only origin main
 ```
 
-Если локальная ветка уже есть, достаточно `git switch feature/ssh-log-analyzer`.
 Если команда `code` недоступна, открой VS Code обычным способом и выбери
 File → Open Folder → Cyber-Learning.
 
@@ -73,3 +72,6 @@ failed / (success + failed) * 100
 
 В исходном примере получится примерно **57.1%**. Для пустого лога не должно
 возникать деления на ноль. Это следующий небольшой шаг после первого запуска.
+
+Для знакомства с проверкой частых неудачных попыток переходи ко
+[второму занятию](LESSON_02_RU.md).
