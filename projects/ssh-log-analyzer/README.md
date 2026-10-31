@@ -1,21 +1,49 @@
 # SSH Log Analyzer
 
-A small Python learning project connecting Linux, cybersecurity, and data analysis.
-Version 0.1 reads a local text log, counts supported SSH login outcomes by IP, prints
-a summary, and optionally exports a CSV report. It uses only the Python standard library.
+## Overview
 
-## Run
+SSH Log Analyzer is a Python learning project connecting Linux,
+cybersecurity, and data analysis. It reads a local OpenSSH text log, counts
+supported login outcomes by IP address, prints a summary, and optionally
+exports a CSV report.
 
-Requires Python 3.10 or newer. From the repository root:
+## Features
+
+- Parses supported OpenSSH `sshd` authentication messages.
+- Counts successful and failed outcomes for each valid IPv4 or IPv6 address.
+- Normalizes equivalent IPv6 spellings.
+- Reports malformed, unsupported, or blank lines.
+- Exports deterministic per-IP totals to CSV.
+- Uses only the Python standard library.
+
+## Requirements
+
+- Python 3.10 or newer.
+- A UTF-8-readable local text log.
+
+## Installation
+
+No third-party packages are required. From the repository root:
 
 ```bash
 cd projects/ssh-log-analyzer
+```
+
+## Usage
+
+Analyze the bundled synthetic log:
+
+```bash
 python3 analyzer.py data/sample_auth.log
+```
+
+Export the results to CSV:
+
+```bash
 python3 analyzer.py data/sample_auth.log --csv report.csv
 ```
 
-The bundled log is entirely synthetic and uses documentation IP addresses.
-Its expected summary is:
+The bundled log uses documentation IP addresses. Its expected summary is:
 
 ```text
 Successful logins: 3
@@ -26,9 +54,10 @@ Skipped lines: 3
 
 The per-IP table is ordered by failed attempts, highest first. CSV columns are
 `ip,successful,failed,total`. An existing CSV at the chosen path is replaced;
-the input log cannot be used as the output path. The output directory must exist.
+the input log cannot be used as the output path. The output directory must
+exist.
 
-## What the parser counts
+## Examples and parsing scope
 
 - OpenSSH `sshd` text messages with `Accepted` or `Failed` and `password` or `publickey`.
 - Both normal usernames and the `invalid user` form.
@@ -39,17 +68,17 @@ UTF-8 decoding errors are replaced. Each matching line counts as one event;
 duplicate records are counted again. Unsupported authentication methods and
 structured journal JSON are outside this version's scope. Timestamps are not yet analyzed.
 
-A failed authentication message alone does not establish an attack, and the
+A failed authentication message alone does not establish an attack. The
 failure count is not a count of unique people or completed SSH sessions.
 
-## How the code works
+## Implementation
 
 1. `parse_line()` extracts and validates one event.
 2. `analyze()` reads the log line by line and updates per-IP counters.
 3. `save_csv()` writes the counts to a report.
 4. `main()` handles command-line arguments and prints the results.
 
-## Check
+## Testing
 
 From this project directory:
 
@@ -57,12 +86,25 @@ From this project directory:
 python3 -m unittest -v
 ```
 
-The tests cover the sample totals, IPv6 grouping, skipped lines, empty input,
-CSV totals, command-line export, missing files, and input overwrite protection.
+The tests cover sample totals, IPv6 grouping, skipped lines, empty input, CSV
+totals, command-line export, missing files, and input overwrite protection.
+
+## Security considerations
+
+The analyzer processes local text and writes only to the explicitly selected
+CSV path. It does not authenticate log sources, prove that records are genuine,
+or identify attackers. Treat logs and generated reports as sensitive
+operational data and use appropriate filesystem permissions.
+
+## Limitations
+
+Unsupported authentication methods, structured journal JSON, and timestamp
+analysis are outside this version's scope. Duplicate records are counted
+again, and UTF-8 decoding errors are replaced.
 
 ## Next learning steps
 
-- [First lesson in Russian](START_RU.md): run the script and explain its counters.
+- [First lesson](START_RU.md): run the script and explain its counters.
 - Add the percentage of failed attempts, including the empty-log case.
 - Add hourly aggregation with an explicit timestamp format and year policy.
 - Add a chart after the numeric output is understood and checked.
