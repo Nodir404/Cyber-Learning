@@ -104,7 +104,7 @@ again, and UTF-8 decoding errors are replaced.
 
 ## Next learning steps
 
-- [First lesson](START_RU.md): run the script and explain its counters.
+- [Getting started](GETTING_STARTED.md): run the script and explain its counters.
 - Add the percentage of failed attempts, including the empty-log case.
 - Add hourly aggregation with an explicit timestamp format and year policy.
 - Add a chart after the numeric output is understood and checked.
