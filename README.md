@@ -17,7 +17,8 @@ can be studied, tested, and extended independently.
   discovery, port scanning, service detection, and vulnerability-search
   methodology.
 - [SSH Log Analyzer](projects/ssh-log-analyzer/README.md) — parses synthetic
-  OpenSSH logs, summarizes login outcomes by IP address, and exports CSV.
+  OpenSSH logs, summarizes login outcomes by IP address, exports CSV, and
+  optionally flags frequent failed attempts within a rolling time window.
 - [Burp Authentication Lab](labs/burp-auth-lab/README.md) — compares an
   intentionally vulnerable access-control example with a server-side session
   implementation.

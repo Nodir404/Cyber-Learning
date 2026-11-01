@@ -1,29 +1,34 @@
 # First Run in VS Code
 
 The goal of this first lesson is to run the program, understand its counters,
-and make a controlled change to the sample data. The initial version is
-prepared as a basis for review.
+and make a controlled change to the bundled synthetic data.
 
 ## 1. Open the project
 
-If the repository is not cloned yet, run these commands in an Ubuntu terminal:
+If the repository is not cloned yet, run these commands in a Linux terminal:
 
 ```bash
-git clone --branch feature/ssh-log-analyzer https://github.com/Nodir404/Cyber-Learning.git
+git clone https://github.com/Nodir404/Cyber-Learning.git
 cd Cyber-Learning
 code .
 ```
 
 If it is already cloned, open its folder in VS Code, open the integrated
-terminal, and run:
+terminal, and check for local changes:
 
 ```bash
-git fetch origin
-git switch --track origin/feature/ssh-log-analyzer
+git status --short
 ```
 
-If the local branch already exists, `git switch feature/ssh-log-analyzer` is
-enough. If the `code` command is unavailable, open VS Code normally and choose
+If any paths are listed, stop and review them before switching branches.
+Otherwise, update the main branch:
+
+```bash
+git switch main
+git pull --ff-only origin main
+```
+
+If the `code` command is unavailable, open VS Code normally and choose
 File → Open Folder → Cyber-Learning.
 
 ## 2. Run the example
@@ -76,3 +81,6 @@ failed / (success + failed) * 100
 
 The original example should produce approximately **57.1%**. An empty log must
 not cause division by zero. This is the next small step after the first run.
+
+Continue with the [burst detection lesson in Russian](LESSON_02_RU.md) to
+investigate frequent failed attempts within a rolling time window.
