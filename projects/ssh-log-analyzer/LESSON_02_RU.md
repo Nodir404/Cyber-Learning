@@ -6,17 +6,25 @@
 
 ## Получи новую версию
 
-Пока изменения находятся в отдельной ветке, в терминале выполни строки по очереди:
+После объединения PR #2 используй актуальную версию из `main`.
+Сначала проверь состояние рабочей копии:
 
 ```bash
 cd ~/Cyber-Learning
-git fetch origin
-git switch --track origin/feature/ssh-burst-detection
+git status --short
+```
+
+Если команда перечислила файлы или папки, остановись и разбери эти изменения
+перед переключением веток. Если вывод пустой, выполни:
+
+```bash
+git switch main
+git pull --ff-only origin main
 cd projects/ssh-log-analyzer
 ```
 
-Если такая локальная ветка уже есть, используй `git switch feature/ssh-burst-detection`.
-Если Git сообщает о несохранённых изменениях, сохрани их перед переключением.
+До объединения PR #2 запускай пример из проверенной ветки
+`feature/ssh-burst-detection`, в которой есть `data/sample_burst.log`.
 
 ## Запусти проверку
 
