@@ -1,0 +1,32 @@
+name: Python tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.13']
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.1.0
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Test SSH Log Analyzer
+        run: python -m unittest discover -s projects/ssh-log-analyzer -p 'test_*.py' -v
+      - name: Test authentication lab
+        run: python -m unittest discover -s labs/burp-auth-lab -p 'test_*.py' -v
