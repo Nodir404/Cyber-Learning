@@ -1,27 +1,40 @@
 # Cyber-Learning
 
-Cybersecurity learning notes and small, local practice projects covering
-reconnaissance, authentication, access control, and security-focused Python.
-The repository is intended for authorized labs, documentation IP addresses,
-and synthetic data only.
+My cybersecurity learning workspace, with **SSH Log Analyzer** as the main
+development project. It connects Linux authentication logs, defensive analysis,
+and Python. Nmap notes and a local access-control lab document the supporting
+learning path.
 
 ## Overview
 
-This repository contains study notes, deliberately vulnerable demonstrations,
-and defensive analysis exercises. Each project remains self-contained so it
-can be studied, tested, and extended independently.
+Start with [SSH Log Analyzer](projects/ssh-log-analyzer/README.md) to run the
+tool, inspect sample output, and understand its scope. The
+[development roadmap (Russian)](ROADMAP.md) records the agreed priorities,
+completion criteria, and future portfolio projects.
 
 ## Projects and documentation
 
-- [Nmap notes](01-nmap-target-specification.md) — target specification, host
-  discovery, port scanning, service detection, and vulnerability-search
-  methodology.
-- [SSH Log Analyzer](projects/ssh-log-analyzer/README.md) — parses synthetic
-  OpenSSH logs, summarizes login outcomes by IP address, exports CSV, and
-  optionally flags frequent failed attempts within a rolling time window.
-- [Burp Authentication Lab](labs/burp-auth-lab/README.md) — compares an
-  intentionally vulnerable access-control example with a server-side session
-  implementation.
+| Work | Purpose | Priority |
+| --- | --- | --- |
+| [SSH Log Analyzer](projects/ssh-log-analyzer/README.md) | Summarize OpenSSH login outcomes by IP, export CSV, and check bursts of failed attempts | Main active project |
+| [Nmap and reconnaissance notes](notes/nmap/README.md) | Seven study documents with a reading order and guidance for adding practical observations | Reference material |
+| [Burp Authentication Lab](labs/burp-auth-lab/README.md) | Compare vulnerable access control with server-side session handling | Preserved learning lab; revisit alongside web-security study |
+
+The analyzer currently lives in this repository. A future move into a dedicated
+repository is tracked in the roadmap; this location remains the source of truth
+until that move is completed.
+
+## Try the main project
+
+From the repository root, after cloning:
+
+```bash
+python3 projects/ssh-log-analyzer/analyzer.py projects/ssh-log-analyzer/data/sample_auth.log
+```
+
+The supplied synthetic log produces 3 successful logins, 4 failed logins,
+4 unique IPs, and 3 skipped lines. For burst detection and CSV export, follow
+the [project usage guide](projects/ssh-log-analyzer/README.md).
 
 ## Requirements
 
@@ -47,20 +60,19 @@ Read the documentation for the project you want to study:
 
 - [SSH Log Analyzer usage](projects/ssh-log-analyzer/README.md)
 - [Burp Authentication Lab usage](labs/burp-auth-lab/README.md)
-- [Nmap notes](01-nmap-target-specification.md)
+- [Nmap and reconnaissance notes](notes/nmap/README.md)
 
 ## Testing
 
-Run the test suites from their respective project directories:
+Run both test suites from the repository root:
 
 ```bash
-cd projects/ssh-log-analyzer
-python3 -m unittest -v
-
-cd ../../labs/burp-auth-lab
-python3 -m unittest -v test_secure_server.py
-python3 -m py_compile server.py secure_server.py test_secure_server.py
+python3 -m unittest discover -s projects/ssh-log-analyzer -p 'test_*.py' -v
+python3 -m unittest discover -s labs/burp-auth-lab -p 'test_*.py' -v
 ```
+
+The [Python tests workflow](.github/workflows/python-tests.yml) runs the same
+suites on pushes and pull requests, using Python 3.10 and 3.13.
 
 ## Security considerations
 
