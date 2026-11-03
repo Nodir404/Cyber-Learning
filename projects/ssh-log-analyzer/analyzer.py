@@ -3,6 +3,7 @@
 import argparse
 import csv
 import ipaddress
+import json
 import re
 from dataclasses import dataclass
 from datetime import datetime
@@ -14,7 +15,8 @@ from reports import build_report, save_html, save_json
 # Example: sshd[1201]: Failed password for invalid user admin from 192.0.2.10 port 50100 ssh2
 LOGIN_PATTERN = re.compile(
     r"\bsshd(?:\[\d+\])?: (?P<result>Accepted|Failed) "
-    r"(?:password|publickey) for (?:invalid user )?\S+ "
+    r"(?P<auth_method>password|publickey) for "
+    r"(?:(?P<invalid_user>invalid user) )?(?P<username>\S+) "
     r"from (?P<ip>\S+) port \d+(?:\s|$)"
 )
 TIME_PATTERN = re.compile(
@@ -29,6 +31,16 @@ MONTHS = {
 
 
 @dataclass(frozen=True)
+class SSHEvent:
+    address: str
+    result: str
+    username: str
+    auth_method: str
+    invalid_user: bool
+    line_number: int | None = None
+
+
+@dataclass(frozen=True)
 class BurstAlert:
     address: str
     failures: int
@@ -36,8 +48,8 @@ class BurstAlert:
     end: datetime
 
 
-def parse_line(line: str) -> tuple[str, str] | None:
-    """Return (normalized IP, success/failed), or None for an unsupported line."""
+def parse_event(line: str, *, line_number: int | None = None) -> SSHEvent | None:
+    """Read authentication metadata; retain the existing supported message scope."""
     match = LOGIN_PATTERN.search(line)
     if match is None:
         return None
@@ -48,7 +60,24 @@ def parse_line(line: str) -> tuple[str, str] | None:
         return None
 
     result = "success" if match.group("result") == "Accepted" else "failed"
-    return address, result
+    return SSHEvent(
+        address, result, match.group("username"), match.group("auth_method"),
+        match.group("invalid_user") is not None, line_number,
+    )
+
+
+def parse_line(line: str) -> tuple[str, str] | None:
+    """Keep the original (normalized IP, success/failed) parsing interface."""
+    event = parse_event(line)
+    return (event.address, event.result) if event is not None else None
+
+
+def iter_events(lines):
+    """Yield supported events with 1-based physical line numbers, preserving order."""
+    for line_number, line in enumerate(lines, start=1):
+        event = parse_event(line, line_number=line_number)
+        if event is not None:
+            yield event
 
 
 def analyze(lines) -> tuple[dict[str, dict[str, int]], int]:
@@ -129,6 +158,19 @@ def save_csv(path: Path, counts) -> None:
             writer.writerow([address, success, failed, success + failed])
 
 
+def save_events_jsonl(path: Path, lines) -> None:
+    """Write one schema 1.0 event per line, without buffering all events."""
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        for event in iter_events(lines):
+            record = {
+                "schema_version": "1.0", "line_number": event.line_number,
+                "ip": event.address, "result": event.result,
+                "username": event.username, "auth_method": event.auth_method,
+                "invalid_user": event.invalid_user,
+            }
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
 def same_path(first: Path, second: Path) -> bool:
     """Recognize spelling aliases, symbolic links, and existing hard links."""
     return first.resolve() == second.resolve() or (
@@ -142,6 +184,7 @@ def main(argv=None) -> int:
     parser.add_argument("--csv", type=Path, help="CSV output path (replaces an existing file)")
     parser.add_argument("--json", type=Path, help="Versioned JSON report path (replaces an existing file)")
     parser.add_argument("--html", type=Path, help="Self-contained offline HTML report path (replaces an existing file)")
+    parser.add_argument("--events-jsonl", type=Path, help="Per-event metadata JSONL path (replaces an existing file)")
     parser.add_argument("--detect-bursts", action="store_true", help="Check for frequent failed attempts")
     parser.add_argument("--year", type=int, help="Calendar year of all input records (required for burst checks)")
     parser.add_argument("--threshold", type=int, default=20, help="Minimum failures for an alert (default: 20)")
@@ -157,6 +200,7 @@ def main(argv=None) -> int:
     try:
         outputs = [(name, path) for name, path in (
             ("CSV", args.csv), ("JSON", args.json), ("HTML", args.html),
+            ("JSONL", args.events_jsonl),
         ) if path is not None]
         # Validate every destination before any report can overwrite a file.
         for index, (name, path) in enumerate(outputs):
@@ -174,6 +218,9 @@ def main(argv=None) -> int:
                     handle, year=args.year, threshold=args.threshold,
                     window_seconds=args.window_seconds,
                 )
+            if args.events_jsonl is not None:
+                handle.seek(0)
+                save_events_jsonl(args.events_jsonl, handle)
         if args.csv is not None:
             save_csv(args.csv, counts)
         if args.json is not None or args.html is not None:
@@ -209,6 +256,8 @@ def main(argv=None) -> int:
         print(f"\nJSON saved to {args.json}")
     if args.html is not None:
         print(f"\nHTML saved to {args.html}")
+    if args.events_jsonl is not None:
+        print(f"\nEvents JSONL saved to {args.events_jsonl}")
     if args.detect_bursts:
         print(f"\nFailure burst check: >= {args.threshold} failures within {args.window_seconds}s")
         print(f"Failed records without a supported timestamp: {undated}")

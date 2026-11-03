@@ -12,6 +12,7 @@ a CSV report, and checks for bursts of failed attempts.
 - Parses supported OpenSSH `sshd` authentication messages.
 - Counts successful and failed outcomes for each valid IPv4 or IPv6 address.
 - Normalizes equivalent IPv6 spellings.
+- Retains username, authentication method, the log's `invalid user` marker, and physical line references.
 - Reports malformed, unsupported, or blank lines.
 - Exports deterministic per-IP totals to CSV.
 - Exports a versioned JSON report with summary, rule settings, and alert evidence.
@@ -124,7 +125,49 @@ input and other outputs, including existing hard-link or symbolic-link aliases.
 Existing output files are replaced; output directories must exist. Exports are
 written independently: if a later export fails, earlier exports may already exist.
 
-### JSON schema 1.0
+## Export individual authentication events
+
+```bash
+python3 analyzer.py data/sample_auth.log --events-jsonl events.jsonl --json report.json
+```
+
+`events.jsonl` contains one JSON object per supported event, in original input
+order. For example, the first exported event from the sample is:
+
+```json
+{"schema_version": "1.0", "line_number": 2, "ip": "192.0.2.10", "result": "failed", "username": "admin", "auth_method": "password", "invalid_user": true}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `schema_version` | Event-export schema `"1.0"`, separate from the aggregate report schema |
+| `line_number` | 1-based physical input line, including skipped lines in the numbering |
+| `ip` | Normalized source IPv4/IPv6 address |
+| `result` | `"success"` for Accepted or `"failed"` for Failed |
+| `username` | Username token exactly as recorded in the supported message |
+| `auth_method` | `"password"` or `"publickey"` |
+| `invalid_user` | Whether the message contained the literal `invalid user` marker; not an independent account lookup |
+
+The sample exports seven events from input lines 2 through 8: three successes
+and four failures. Skipped records are omitted, and duplicates are retained.
+An empty or entirely unsupported input produces an empty JSONL file; combine
+with `--json` to retain aggregate coverage and skipped-line information.
+
+`--events-jsonl` can be combined with CSV, JSON, HTML, and burst detection. All
+output-path protections apply. Event export rereads the input and writes one
+event at a time. Analyze a stable copy of the log: line references describe that
+copy, and a file changing between passes can produce inconsistent exports.
+
+The export includes neither raw log lines nor password/key material. Usernames
+and source IPs remain sensitive operational data. Timestamps and destination
+host identity are not included in event schema 1.0; preserve the original file
+for context. Username-aware and cross-host detections are planned, not implemented.
+
+Python callers can use `parse_event(line)` for an immutable `SSHEvent`, or
+`iter_events(lines)` for events with line numbers. The original `parse_line()`
+interface still returns `(normalized_ip, "success" or "failed")` or `None`.
+
+## Aggregate JSON report schema 1.0
 
 | Field | Meaning |
 | --- | --- |
@@ -175,6 +218,7 @@ failure count is not a count of unique people or completed SSH sessions.
 5. `detect_bursts()` sorts failed events per IP and moves a time window over them.
 6. `main()` handles command-line arguments and prints the results.
 7. `reports.py` builds schema 1.0 and renders the same results as JSON and HTML.
+8. `parse_event()` and `iter_events()` retain authentication metadata; `save_events_jsonl()` exports it.
 
 ## Testing
 
@@ -189,6 +233,8 @@ totals, command-line export, missing files, input overwrite protection, and
 burst thresholds, time boundaries, invalid dates, and out-of-order events.
 Report tests also verify export agreement, timestamp coverage, empty inputs,
 deterministic output, HTML escaping, and protection against output path aliases.
+Event tests verify metadata, original line numbers, export agreement, duplicate
+handling, non-ASCII usernames, JSON escaping, and JSONL output-path protection.
 
 ## Security considerations
 

@@ -4,3 +4,4 @@ __pycache__/
 report.csv
 report.json
 report.html
+events.jsonl
