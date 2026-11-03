@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+from reports import build_report, save_html, save_json
+
 
 # Example: sshd[1201]: Failed password for invalid user admin from 192.0.2.10 port 50100 ssh2
 LOGIN_PATTERN = re.compile(
@@ -127,10 +129,19 @@ def save_csv(path: Path, counts) -> None:
             writer.writerow([address, success, failed, success + failed])
 
 
+def same_path(first: Path, second: Path) -> bool:
+    """Recognize spelling aliases, symbolic links, and existing hard links."""
+    return first.resolve() == second.resolve() or (
+        first.exists() and second.exists() and first.samefile(second)
+    )
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("log", type=Path, help="Path to a local SSH text log")
     parser.add_argument("--csv", type=Path, help="CSV output path (replaces an existing file)")
+    parser.add_argument("--json", type=Path, help="Versioned JSON report path (replaces an existing file)")
+    parser.add_argument("--html", type=Path, help="Self-contained offline HTML report path (replaces an existing file)")
     parser.add_argument("--detect-bursts", action="store_true", help="Check for frequent failed attempts")
     parser.add_argument("--year", type=int, help="Calendar year of all input records (required for burst checks)")
     parser.add_argument("--threshold", type=int, default=20, help="Minimum failures for an alert (default: 20)")
@@ -144,11 +155,17 @@ def main(argv=None) -> int:
         parser.error("--threshold and --window-seconds must be positive")
 
     try:
-        if args.csv is not None and (
-            args.csv.resolve() == args.log.resolve()
-            or (args.csv.exists() and args.csv.samefile(args.log))
-        ):
-            parser.error("CSV output must be different from the input log")
+        outputs = [(name, path) for name, path in (
+            ("CSV", args.csv), ("JSON", args.json), ("HTML", args.html),
+        ) if path is not None]
+        # Validate every destination before any report can overwrite a file.
+        for index, (name, path) in enumerate(outputs):
+            if same_path(path, args.log):
+                parser.error(f"{name} output must be different from the input log")
+            for other_name, other_path in outputs[:index]:
+                if same_path(path, other_path):
+                    parser.error(f"{name} and {other_name} outputs must use different files")
+        alerts, undated = [], None
         with args.log.open(encoding="utf-8", errors="replace") as handle:
             counts, skipped = analyze(handle)
             if args.detect_bursts:
@@ -159,6 +176,19 @@ def main(argv=None) -> int:
                 )
         if args.csv is not None:
             save_csv(args.csv, counts)
+        if args.json is not None or args.html is not None:
+            report = build_report(
+                counts, skipped, source_name=args.log.name,
+                burst_settings={
+                    "year": args.year, "threshold": args.threshold,
+                    "window_seconds": args.window_seconds,
+                } if args.detect_bursts else None,
+                alerts=alerts, excluded_failed_records=undated,
+            )
+            if args.json is not None:
+                save_json(args.json, report)
+            if args.html is not None:
+                save_html(args.html, report)
     except OSError as error:
         parser.error(str(error))
 
@@ -175,6 +205,10 @@ def main(argv=None) -> int:
         print(f"{address:<39} {accepted:>7} {rejected:>7} {accepted + rejected:>7}")
     if args.csv is not None:
         print(f"\nCSV saved to {args.csv}")
+    if args.json is not None:
+        print(f"\nJSON saved to {args.json}")
+    if args.html is not None:
+        print(f"\nHTML saved to {args.html}")
     if args.detect_bursts:
         print(f"\nFailure burst check: >= {args.threshold} failures within {args.window_seconds}s")
         print(f"Failed records without a supported timestamp: {undated}")
