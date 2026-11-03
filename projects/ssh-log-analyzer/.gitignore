@@ -1,7 +1,0 @@
-__pycache__/
-*.py[cod]
-.venv/
-report.csv
-report.json
-report.html
-events.jsonl
