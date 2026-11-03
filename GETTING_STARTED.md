@@ -8,8 +8,8 @@ and make a controlled change to the bundled synthetic data.
 If the repository is not cloned yet, run these commands in a Linux terminal:
 
 ```bash
-git clone https://github.com/Nodir404/Cyber-Learning.git
-cd Cyber-Learning
+git clone https://github.com/Nodir404/ssh-log-analyzer.git
+cd ssh-log-analyzer
 code .
 ```
 
@@ -29,7 +29,7 @@ git pull --ff-only origin main
 ```
 
 If the `code` command is unavailable, open VS Code normally and choose
-File → Open Folder → Cyber-Learning.
+File → Open Folder → ssh-log-analyzer.
 
 ## 2. Run the example
 
@@ -37,7 +37,6 @@ From the repository root, run:
 
 ```bash
 python3 --version
-cd projects/ssh-log-analyzer
 python3 analyzer.py data/sample_auth.log --csv report.csv
 ```
 
@@ -71,16 +70,23 @@ Run the tests:
 python3 -m unittest -v
 ```
 
-## Next task
+## Inspect the report percentages
 
-Add a percentage for failed attempts:
+The JSON and HTML reports already include a percentage for failed events:
 
 ```text
 failed / (success + failed) * 100
 ```
 
-The original example should produce approximately **57.1%**. An empty log must
-not cause division by zero. This is the next small step after the first run.
+Generate them:
+
+```bash
+python3 analyzer.py data/sample_auth.log --json report.json --html report.html
+```
+
+The original example produces **57.14%**. An empty log has an undefined failure
+percentage, represented by `null` in JSON. Review `percentage()` in `reports.py`
+and explain why an empty input is different from a measured 0% failure rate.
 
 Continue with the [burst detection lesson in Russian](LESSON_02_RU.md) to
 investigate frequent failed attempts within a rolling time window.

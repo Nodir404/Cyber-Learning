@@ -27,6 +27,4 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Test SSH Log Analyzer
-        run: python -m unittest discover -s projects/ssh-log-analyzer -p 'test_*.py' -v
-      - name: Test authentication lab
-        run: python -m unittest discover -s labs/burp-auth-lab -p 'test_*.py' -v
+        run: python -m unittest discover -s . -p 'test_*.py' -v

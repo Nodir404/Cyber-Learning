@@ -6,11 +6,10 @@
 
 ## Получи новую версию
 
-После объединения PR #2 используй актуальную версию из `main`.
-Сначала проверь состояние рабочей копии:
+Используй актуальную версию из `main` отдельного репозитория.
+Открой папку, в которую клонировал `ssh-log-analyzer`, и проверь рабочую копию:
 
 ```bash
-cd ~/Cyber-Learning
 git status --short
 ```
 
@@ -20,11 +19,9 @@ git status --short
 ```bash
 git switch main
 git pull --ff-only origin main
-cd projects/ssh-log-analyzer
 ```
 
-До объединения PR #2 запускай пример из проверенной ветки
-`feature/ssh-burst-detection`, в которой есть `data/sample_burst.log`.
+Команды ниже выполняются из корня `ssh-log-analyzer`.
 
 ## Запусти проверку
 
