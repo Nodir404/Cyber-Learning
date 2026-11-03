@@ -16,7 +16,7 @@ completion criteria, and future portfolio projects.
 
 | Work | Purpose | Priority |
 | --- | --- | --- |
-| [SSH Log Analyzer](projects/ssh-log-analyzer/README.md) | Summarize OpenSSH login outcomes by IP, export CSV, and check bursts of failed attempts | Main active project |
+| [SSH Log Analyzer](projects/ssh-log-analyzer/README.md) | Summarize OpenSSH login outcomes, check failure bursts, and export CSV, JSON, and offline HTML reports | Main active project |
 | [Nmap and reconnaissance notes](notes/nmap/README.md) | Seven study documents with a reading order and guidance for adding practical observations | Reference material |
 | [Burp Authentication Lab](labs/burp-auth-lab/README.md) | Compare vulnerable access control with server-side session handling | Preserved learning lab; revisit alongside web-security study |
 
@@ -33,8 +33,18 @@ python3 projects/ssh-log-analyzer/analyzer.py projects/ssh-log-analyzer/data/sam
 ```
 
 The supplied synthetic log produces 3 successful logins, 4 failed logins,
-4 unique IPs, and 3 skipped lines. For burst detection and CSV export, follow
+4 unique IPs, and 3 skipped lines. For burst detection and report exports, follow
 the [project usage guide](projects/ssh-log-analyzer/README.md).
+
+Generate an offline investigation report from the synthetic burst example:
+
+```bash
+python3 projects/ssh-log-analyzer/analyzer.py projects/ssh-log-analyzer/data/sample_burst.log --detect-bursts --year 2026 --threshold 5 --json report.json --html report.html
+```
+
+Open `report.html` in a browser; it needs no server or API key. See the
+[development direction](projects/ssh-log-analyzer/DEVELOPMENT.md) for proposed
+features; only features documented in the usage guide are implemented.
 
 ## Requirements
 

@@ -14,6 +14,8 @@ a CSV report, and checks for bursts of failed attempts.
 - Normalizes equivalent IPv6 spellings.
 - Reports malformed, unsupported, or blank lines.
 - Exports deterministic per-IP totals to CSV.
+- Exports a versioned JSON report with summary, rule settings, and alert evidence.
+- Generates a self-contained HTML report that opens offline, without JavaScript or remote assets.
 - Optionally flags frequent failed attempts within a rolling time window.
 - Uses only the Python standard library.
 
@@ -98,6 +100,57 @@ This is an offline check. With `--detect-bursts`, the file is read a second time
 and timestamps of valid failed events are held in memory. An alert identifies
 frequent failures for review; it does not by itself establish a password attack.
 
+## Generate investigation reports
+
+Create a human-readable report and a machine-readable report from the same analysis:
+
+```bash
+python3 analyzer.py data/sample_burst.log --detect-bursts --year 2026 --threshold 5 --window-seconds 300 --json report.json --html report.html
+```
+
+Open `report.html` in a browser. It contains summary cards, a per-IP table, the
+observed failure interval, the configured rule, and coverage limitations. It
+needs no server, Internet connection, API key, or third-party package. The report
+does not load fonts, scripts, analytics, or other remote assets.
+
+The sample has 1 successful event, 7 failed events, 3 IPs, and one alert for
+5 failures from `192.0.2.10` between 10:00 and 10:04. These are synthetic records.
+An alert is a request for investigation, not a conclusion that an account was compromised.
+
+Both options also work without `--detect-bursts`; the report explicitly records
+that the time check was not run. All three export options (`--csv`, `--json`,
+`--html`) can be combined. Every output must refer to a different file from the
+input and other outputs, including existing hard-link or symbolic-link aliases.
+Existing output files are replaced; output directories must exist. Exports are
+written independently: if a later export fails, earlier exports may already exist.
+
+### JSON schema 1.0
+
+| Field | Meaning |
+| --- | --- |
+| `schema_version` | `"1.0"`; consumers should inspect this before using the report |
+| `source.name` | Input basename only; the full source path and raw log lines are omitted |
+| `summary` | Successful/failed events, source-IP count, skipped/total lines, and percentages |
+| `addresses` | Per-IP totals, sorted by failures descending, then IP text ascending |
+| `burst_check.enabled` | Distinguishes a check that was not run from a check with no alerts |
+| `burst_check.year`, `threshold`, `window_seconds`, `time_basis` | Rule parameters and timestamp assumptions; `null` when the check was not run |
+| `burst_check.eligible_failed_records`, `excluded_failed_records` | Coverage of the time check; `null` when it was not run |
+| `burst_check.alerts` | Rule ID, IP, failure count, observed start/end, and observed span in seconds |
+| `limitations` | Supported parsing scope and interpretation constraints |
+
+Percentages use supported events as the denominator for failure rates and all
+input lines for parsed-line coverage. Undefined ratios are `null`, including the
+failure rate when there are no supported events. Skipped lines may be ordinary
+unsupported activity; they do not all represent malformed input.
+
+JSON and HTML are deterministic for the same input basename, counts, and settings;
+no generation timestamp is added. Alert timestamps contain no timezone and must
+not be interpreted as UTC. A no-alert result refers only to eligible failed records.
+The observed alert span can be shorter than the configured window.
+
+Reports still contain IP addresses, event times, and the input basename. They
+remain sensitive operational data. Omitting raw lines does not anonymize a report.
+
 ## Examples and parsing scope
 
 - OpenSSH `sshd` text messages with `Accepted` or `Failed` and `password` or `publickey`.
@@ -121,6 +174,7 @@ failure count is not a count of unique people or completed SSH sessions.
 4. `parse_timestamp()` reads a date with an explicit year.
 5. `detect_bursts()` sorts failed events per IP and moves a time window over them.
 6. `main()` handles command-line arguments and prints the results.
+7. `reports.py` builds schema 1.0 and renders the same results as JSON and HTML.
 
 ## Testing
 
@@ -133,11 +187,13 @@ python3 -m unittest -v
 The tests cover sample totals, IPv6 grouping, skipped lines, empty input, CSV
 totals, command-line export, missing files, input overwrite protection, and
 burst thresholds, time boundaries, invalid dates, and out-of-order events.
+Report tests also verify export agreement, timestamp coverage, empty inputs,
+deterministic output, HTML escaping, and protection against output path aliases.
 
 ## Security considerations
 
 The analyzer processes local text and writes only to the explicitly selected
-CSV path. It does not authenticate log sources, prove that records are genuine,
+report paths. It does not authenticate log sources, prove that records are genuine,
 or identify attackers. Treat logs and generated reports as sensitive
 operational data and use appropriate filesystem permissions.
 
@@ -157,3 +213,4 @@ burst check rereads the input and holds valid failed-event timestamps in memory.
 - Add the percentage of failed attempts, including the empty-log case.
 - Add support for ISO timestamps with an explicit timezone policy.
 - Add a chart after the numeric output is understood and checked.
+- [Development direction](DEVELOPMENT.md): planned investigation features and release criteria.
