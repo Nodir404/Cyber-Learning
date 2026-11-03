@@ -1,88 +1,62 @@
 # Cyber-Learning
 
-My cybersecurity learning workspace, with **SSH Log Analyzer** as the main
-development project. It connects Linux authentication logs, defensive analysis,
-and Python. Nmap notes and a local access-control lab document the supporting
-learning path.
-
-## Overview
-
-Start with [SSH Log Analyzer](projects/ssh-log-analyzer/README.md) to run the
-tool, inspect sample output, and understand its scope. The
-[development roadmap (Russian)](ROADMAP.md) records the agreed priorities,
-completion criteria, and future portfolio projects.
+My cybersecurity learning workspace, with Linux/networking notes and a local
+access-control lab. The main development project, **SSH Log Analyzer**, now
+lives in its [dedicated repository](https://github.com/Nodir404/ssh-log-analyzer).
 
 ## Projects and documentation
 
-| Work | Purpose | Priority |
+| Work | Purpose | Location |
 | --- | --- | --- |
-| [SSH Log Analyzer](projects/ssh-log-analyzer/README.md) | Summarize OpenSSH login outcomes, check failure bursts, and export CSV, JSON, and offline HTML reports | Main active project |
-| [Nmap and reconnaissance notes](notes/nmap/README.md) | Seven study documents with a reading order and guidance for adding practical observations | Reference material |
-| [Burp Authentication Lab](labs/burp-auth-lab/README.md) | Compare vulnerable access control with server-side session handling | Preserved learning lab; revisit alongside web-security study |
+| [SSH Log Analyzer](https://github.com/Nodir404/ssh-log-analyzer) | Summarize OpenSSH login outcomes, investigate failure bursts, and export CSV/JSON/HTML/JSONL | Dedicated active repository |
+| [Nmap and reconnaissance notes](notes/nmap/README.md) | Seven study documents with a reading order and practical observations | Preserved here |
+| [Burp Authentication Lab](labs/burp-auth-lab/README.md) | Compare vulnerable access control with server-side session handling | Preserved here |
 
-The analyzer currently lives in this repository. A future move into a dedicated
-repository is tracked in the roadmap; this location remains the source of truth
-until that move is completed.
+The [development roadmap (Russian)](ROADMAP.md) records priorities and the
+supporting learning path. SSH Log Analyzer's current implementation and future
+milestones are documented in its own repository.
 
-## Try the main project
-
-From the repository root, after cloning:
+## Try SSH Log Analyzer
 
 ```bash
-python3 projects/ssh-log-analyzer/analyzer.py projects/ssh-log-analyzer/data/sample_auth.log
+git clone https://github.com/Nodir404/ssh-log-analyzer.git
+cd ssh-log-analyzer
+python3 analyzer.py data/sample_auth.log
 ```
 
-The supplied synthetic log produces 3 successful logins, 4 failed logins,
-4 unique IPs, and 3 skipped lines. For burst detection and report exports, follow
-the [project usage guide](projects/ssh-log-analyzer/README.md).
+The synthetic sample produces 3 successful logins, 4 failed logins, 4 unique
+IPs, and 3 skipped lines. Follow the
+[usage guide](https://github.com/Nodir404/ssh-log-analyzer/blob/main/README.md)
+for burst checks, offline HTML reports, and event exports.
 
-Generate an offline investigation report from the synthetic burst example:
+The analyzer's original development history remains in this repository and was
+also inherited by the dedicated repository. The old
+[project path](projects/ssh-log-analyzer/README.md) provides a navigation link;
+there is only one active code location.
 
-```bash
-python3 projects/ssh-log-analyzer/analyzer.py projects/ssh-log-analyzer/data/sample_burst.log --detect-bursts --year 2026 --threshold 5 --json report.json --html report.html
-```
-
-Open `report.html` in a browser; it needs no server or API key. See the
-[development direction](projects/ssh-log-analyzer/DEVELOPMENT.md) for proposed
-features; only features documented in the usage guide are implemented.
-
-## Requirements
-
-- Python 3.10 or newer for the Python projects.
-- A POSIX-compatible terminal for the documented commands.
-- Burp Suite is optional and is used only with the local authentication lab.
-
-## Installation
-
-Clone the repository and enter its directory:
+## Work with this learning repository
 
 ```bash
 git clone https://github.com/Nodir404/Cyber-Learning.git
 cd Cyber-Learning
 ```
 
-The projects use only the Python standard library and require no package
-installation.
-
-## Usage
-
-Read the documentation for the project you want to study:
-
-- [SSH Log Analyzer usage](projects/ssh-log-analyzer/README.md)
-- [Burp Authentication Lab usage](labs/burp-auth-lab/README.md)
-- [Nmap and reconnaissance notes](notes/nmap/README.md)
+Read the [Nmap notes](notes/nmap/README.md) or the
+[authentication lab](labs/burp-auth-lab/README.md). The Python examples require
+Python 3.10 or newer and use only the standard library. Burp Suite is optional
+and is used only with the local authentication lab.
 
 ## Testing
 
-Run both test suites from the repository root:
+Run the lab tests from this repository's root:
 
 ```bash
-python3 -m unittest discover -s projects/ssh-log-analyzer -p 'test_*.py' -v
 python3 -m unittest discover -s labs/burp-auth-lab -p 'test_*.py' -v
 ```
 
-The [Python tests workflow](.github/workflows/python-tests.yml) runs the same
-suites on pushes and pull requests, using Python 3.10 and 3.13.
+The [Python tests workflow](.github/workflows/python-tests.yml) checks the lab
+on Python 3.10 and 3.13. The analyzer runs its own test suite in its dedicated
+repository.
 
 ## Security considerations
 
@@ -91,19 +65,14 @@ test. The Burp lab includes an intentionally insecure implementation for
 comparison; do not deploy it. The secure example is educational and is not a
 complete production authentication system.
 
-## Limitations
-
 The notes and exercises are introductory materials, not a penetration-testing
-framework or a security certification. Examples use documentation IP ranges,
-local services, and synthetic records. Validate every technique in an
-authorized environment and consult the individual project documentation for
-scope-specific limitations.
+framework or a certification. Examples use documentation IP ranges, local
+services, and synthetic records. Consult each project's documented limitations.
 
 ## About
 
 This repository records an ongoing cybersecurity learning path, beginning with
-penetration-testing fundamentals and expanding toward security engineering and
-cloud security.
+penetration-testing fundamentals and expanding toward security engineering.
 
 ## Certification
 
