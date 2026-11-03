@@ -23,13 +23,20 @@ Both use the existing parser and burst detector. Reports distinguish disabled
 checks, excluded timestamps, and no-alert results. There are no new detection
 rules, continuous monitoring, AI calls, or automated remediation in this increment.
 
+A follow-up branch adds `SSHEvent`, `parse_event()`, and `iter_events()` plus
+optional JSONL export. It retains usernames, authentication methods, the log's
+`invalid user` marker, and original line numbers. Existing `parse_line()`
+callers retain their tuple interface. This implements the first part of event
+metadata; destination host identity and normalized timestamps remain planned.
+No additional detection rules are included.
+
 ## Proposed milestones
 
 | Order | Deliverable | Evidence required before calling it complete |
 | --- | --- | --- |
 | 1 | Dedicated `ssh-log-analyzer` repository, preserving file history | One source of truth; updated links; existing CLI and tests work after migration |
 | 2 | Reproducible investigation pack | Normal activity, failure burst, and benign retry scenarios; expected reports; a short walkthrough explaining every finding |
-| 3 | Structured authentication events | Username, authentication method, source IP, source host, timestamp, and original line number; existing `parse_line()` callers keep working |
+| 3 | Structured authentication events (partially prepared) | Username, authentication method, source IP, invalid-user marker, and line number are prepared in a follow-up PR; source host and normalized timestamp remain pending; existing `parse_line()` callers keep working |
 | 4 | Reliable time and input support | ISO timestamps normalized with an explicit timezone policy, traditional syslog policy, stdin, and gzip input; tests for offsets, invalid dates, and year boundaries |
 | 5 | Additional explainable detection rules | Each rule has a documented grouping key, window, threshold, positive example, benign counterexample, and coverage exclusions |
 | 6 | Investigation workflow | Timeline, filtering by host/IP/user/time, and references back to source lines; report/export consistency checked |
